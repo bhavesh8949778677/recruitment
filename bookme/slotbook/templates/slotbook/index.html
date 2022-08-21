@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mittal Sports Website</title>
+</head>
+<body>
+    <h1>Welcome To Mittal Sports Website</h1>
+    <form action="/slotbook/" method="POST">
+        {% csrf_token %}
+        <p>Email: <input type="email" autofocus autocomplete="off" name="email"></p>
+        <p>Username: <input type="text" name="name" autocomplete="off"></p>
+        <p>Password: <input type="password" name="password" autocomplete="offs"></p>
+        <p><button type="submit">Register</button></p>
+    </form>
+</body>
+</html>

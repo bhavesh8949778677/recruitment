@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core import serializers
 from django.forms.models import model_to_dict
+from . import util, markdown2
 
 # Create your views here.
 
@@ -30,7 +31,8 @@ def index(request):
                     "username": user["username"],
                     "email":user['email'],
                     "sports": ["basketball", "football", "squash", "badminton", "cricket"],
-                    "slots": ["1 to 3", "3 to 5", "5 to 7", "7 to 9"]
+                    "slots": ["1 to 3", "3 to 5", "5 to 7", "7 to 9"],
+                    "entries": util.list_entries()
                 })
     return HttpResponseRedirect(reverse("slotbook:login"))
 
@@ -123,3 +125,15 @@ def cp(request):
 
     
 
+def sports_pages(request, sport):
+    if request.session.has_key('username'):
+        if request.method=="GET":
+            content=util.get_entry(sport)
+            print(content==None)
+            if content is not None:
+                text = markdown2.markdown(util.get_entry(sport))
+                return render(request, "slotbook/content.html",{
+                    "title": sport,
+                    "text": text,
+                })
+    return HttpResponseRedirect(reverse("slotbook:login"))

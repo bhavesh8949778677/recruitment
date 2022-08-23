@@ -7,5 +7,6 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("login/", views.login, name="login"),
     path("logout/", views.log_out, name="logout"),
-    path("cp/",views.cp, name="cp")
+    path("cp/",views.cp, name="cp"),
+    path("sports_pages/<str:sport>",views.sports_pages,name="sports_pages"),
 ]

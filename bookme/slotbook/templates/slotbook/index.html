@@ -5,20 +5,11 @@
 {% block main %}
     <h1>Hello, {{username}}</h1>
     <h2>your registered email is {{email}}</h2>
-    <table>
-        <thead>
-            <th>Username</th>
-            <th>E-mails</th>
-        </thead>
-        <tbody>
-            {% for x in data %}
-                <tr>
-                    <td>{{x.username}}</td>
-                    <td>{{x.email}}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <ul>
+        {% for entry in sports %}
+            <li><a href="/slotbook/sports_pages/{{entry}}">{{entry}}</a></li>
+        {% endfor %}
+    </ul>
     <form action="/" method="POST">
         <select>
             {% for x in sports %}
@@ -32,7 +23,7 @@
             {% for x in slots %}
             <option>{{x}}</option>
             {% if enpty %}
-            No sports Available
+            No slots Available
             {% endif %}
             {% endfor %}
         </select>

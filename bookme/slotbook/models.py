@@ -8,8 +8,8 @@ class users(models.Model):
     email=models.CharField(max_length=64)
 
 
-    def __str__(self):
-        return f"user_id : {self.id} ,  username :  {self.username} ,    E-mail  :  {self.email}"
+    # def __str__(self):
+    #     return f"user_id : {self.id} ,  username :  {self.username} ,    E-mail  :  {self.email}"
 
 class staff(models.Model):
     username=models.CharField(max_length=64)
@@ -21,8 +21,8 @@ class staff(models.Model):
 class mega(models.Model):
     username=models.CharField(max_length=64)
     password=models.CharField(max_length=64)
-    def __str__(self):
-        return f"Username is {self.username}"
+    # def __str__(self):
+    #     return f"Username is {self.username}"
 class sports(models.Model):
     sport=models.CharField(max_length=64)
 

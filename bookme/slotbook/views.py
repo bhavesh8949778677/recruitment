@@ -1,39 +1,49 @@
 from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
+from django.core import serializers
+from django.forms.models import model_to_dict
+
 # Create your views here.
 
 from .models import *
 
 
 def index(request):
-    print("BYe")
     if request.method=="GET":
-        # if request.session.has_key('admin'):
-        #     admin=request.session['admin']
-        #     return render(request, "admin_index.html",{
-        #         "admin":admin,
-        #     })
+        if request.session.has_key('admin'):
+            admin=request.session['admin']
+            return render(request, "slotbook/admin_index.html",{
+                "admin":admin,
+                "user_data": users.objects.all(),
+                "staff_data": staff.objects.all(),
+            })
+        if request.session.has_key('staff'):
+            staffing=request.session['staff']
+            return render(request, "slotbook/staff_index.html",{
+                "user_data": users.objects.all(),
+            })
         if request.session.has_key('username'):
             user=request.session['username']
-            rows=users.objects.filter(username=username)
-            x=rows[0]
-            print(x)
             return render(request, "slotbook/index.html", {
                     "data":users.objects.all(),
-                    "user":x,
+                    "username": user["username"],
+                    "email":user['email'],
                     "sports": ["basketball", "football", "squash", "badminton", "cricket"],
                     "slots": ["1 to 3", "3 to 5", "5 to 7", "7 to 9"]
                 })
     return HttpResponseRedirect(reverse("slotbook:login"))
+
+
+
 def register(request):
     if request.method=="GET":
         if request.session.has_key('username'):
-            username=request.session['username']
+            user=request.session['username']
             return render(request, "slotbook/index.html", {
                     "data":users.objects.all(),
-                    "username":username,
-                    "email":"hello@iitd",
+                    "username":user['username'],
+                    "email":user['email'],
                 })  
         return render(request, "slotbook/register.html")
     if request.method=="POST":
@@ -49,11 +59,11 @@ def register(request):
             }) 
         rows=users.objects.all()
         mind.save()
-        request.session["username"]=mind.username
-        return HttpResponseRedirect("slotbook:index")
+        request.session["username"]=mind
+        return HttpResponseRedirect(reverse("slotbook:index"))
 def login(request):
     if request.method=="GET":
-        if request.session.has_key("username"):
+        if request.session.has_key("username") or request.session.has_key("admin") or request.session.has_key("staff"):
             return HttpResponseRedirect(reverse("slotbook:index"))
         return render(request, "slotbook/login.html")
     if request.method=="POST":
@@ -61,22 +71,35 @@ def login(request):
         username=form["name"]
         password=form["password"]
         rows=mega.objects.filter(username=username, password=password)
+        print()
+        print()
+        # print(rows[0])
+        print()
+        print()
         if len(rows)==1:
-            print("HI")
-            print("HI")
-            request.session['admin']=rows[0]
-            print("Hello")
+            request.session['admin'] = model_to_dict(rows[0]) ####################################################
             return HttpResponseRedirect(reverse("slotbook:index"))
-        staff_data=staff.objects.all()
+        rows=staff.objects.filter(username=username, password=password)
+        if len(rows)==1:
+            request.session['staff'] = model_to_dict(rows[0])
+            return HttpResponseRedirect(reverse("slotbook:index"))
         data=users.objects.all()
         for x in data:
             if x.username==username and x.password==password:
-                request.session['username']=x
+                request.session['username']=model_to_dict(x)
                 return HttpResponseRedirect(reverse("slotbook:index"))
         return render(request, "slotbook/login.html",{
             "message":"Invalid Username/Password",
         })
 def log_out(request):
+    try:
+        del request.session['admin']
+    except:
+        pass
+    try:
+        del request.session['staff']
+    except:
+        pass
     try:
         del request.session['username']
     except:

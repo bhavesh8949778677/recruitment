@@ -34,8 +34,22 @@ def index(request):
                     "slots": ["1 to 3", "3 to 5", "5 to 7", "7 to 9"],
                     "entries": util.list_entries()
                 })
+    if request.method=="POST":
+        if request.session.has_key('username'):
+            user=request.session['username']
+            form=request.POST
+            sport=form['sport']
+            slot=form['slot']
+            return render(request, "slotbook/index.html",{
+                "message": "You slot is succesfully booked",
+                "data":users.objects.all(),
+                "username": user["username"],
+                "email":user['email'],
+                "sports": ["basketball", "football", "squash", "badminton", "cricket"],
+                "slots": ["1 to 3", "3 to 5", "5 to 7", "7 to 9"],
+                "entries": util.list_entries()
+            })
     return HttpResponseRedirect(reverse("slotbook:login"))
-
 
 
 def register(request):

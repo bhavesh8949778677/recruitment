@@ -5,23 +5,27 @@
 {% block main %}
     <h1>Hello, {{username}}</h1>
     <h2>your registered email is {{email}}</h2>
-    <ul>
+    <h2 style="text-align:left">All sports</h2>
+    <ul style="text-align:left">
         {% for entry in sports %}
             <li><a href="/slotbook/sports_pages/{{entry}}">{{entry}}</a></li>
         {% endfor %}
     </ul>
-    <form action="/" method="POST">
-        <select>
+    <form action="/slotbook/" method="POST">
+        {% csrf_token %}
+        <select name="sport">
+            <option disabled selected>Sport</option>
             {% for x in sports %}
                 <option>{{x}}</option>
-            {% if enpty %}
-            No sports Available
-            {% endif %}
-            {% endfor %}
+                {% if enpty %}
+                No sports Available
+                {% endif %}
+                {% endfor %}
         </select>
-        <select>
+        <select name="slot">
+            <option disabled selected>Slot</option>
             {% for x in slots %}
-            <option>{{x}}</option>
+                <option value="{{x}}">{{x}}</option>
             {% if enpty %}
             No slots Available
             {% endif %}

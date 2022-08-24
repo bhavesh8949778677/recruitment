@@ -22,10 +22,6 @@ for row in rows:
     ava_arena=arena.objects.filter(id=row['arena_id'])
     ava_arena_obs.add(model_to_dict(ava_arena[0])['arena'])
     # print(model_to_dict(ava_sports[0])['sport'], ava_slot[0], model_to_dict(ava_arena[0])['arena'])
-print(ava_sport_obs)
-print(ava_slot_obs)
-print(ava_arena_obs)
-
 
 #Failed attempt : I learnt I can't pass list_of_dict/set_of_tuples into an html file and extract data
 """
@@ -55,11 +51,37 @@ def index(request):
                 "user_data": users.objects.all(),
                 "staff_data": staff.objects.all(),
             })
+
+
         if request.session.has_key('staff'):
             staffing=request.session['staff']
+            data1=data.objects.all()
+            l=[]
+            for x in data1:
+                x=model_to_dict(x)
+                usera=users.objects.get(id=x['user_id'])
+                usera=model_to_dict(usera)
+                usera=usera['username']
+                sport1=sports.objects.get(id=x['sport_id'])
+                sport1=model_to_dict(sport1)
+                sport1=sport1['sport']
+                arena1=arena.objects.get(id=x['arena_id'])
+                arena1=model_to_dict(arena1)
+                arena1=arena1['arena']
+                slot1=slots.objects.get(id=x['slot_id'])
+                slot1=model_to_dict(slot1)
+                slot1=slot1['day'] + ' start '+str(slot1['start_time'])+' end '+str(slot1['end_time'])
+                dick={'usera':usera,'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                l.append(dick)
             return render(request, "slotbook/staff_index.html",{
                 "user_data": users.objects.all(),
+                "l":l,
+                "sports":sports.objects.all(),
             })
+
+
+
+
         if request.session.has_key('username'):
             user=request.session['username']
             return render(request, "slotbook/index.html", {
@@ -235,6 +257,16 @@ def sports_pages(request, sport):
                 return render(request, "slotbook/content.html",{
                     "title": sport,
                     "text": text,
+                })
+    if request.session.has_key('staff'):
+        if request.method=="GET":
+            content=util.get_entry(sport)
+            if content is not None:
+                text = markdown2.markdown(util.get_entry(sport))
+                return render(request, "slotbook/content.html",{
+                    "title": sport,
+                    "text": text,
+                    "edit_access": True,
                 })
     return HttpResponseRedirect(reverse("slotbook:login"))
 

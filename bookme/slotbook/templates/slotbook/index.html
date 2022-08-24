@@ -11,16 +11,26 @@
             <li><a href="/slotbook/sports_pages/{{entry}}">{{entry}}</a></li>
         {% endfor %}
     </ul>
+    <h1>Available Slots</h1>
     <form action="/slotbook/" method="POST">
         {% csrf_token %}
         <select name="sport">
             <option disabled selected>Sport</option>
-            {% for x in sports %}
-                <option>{{x}}</option>
-                {% if enpty %}
+            {% for x in ava_sports %}
+                <option value="{{x}}">{{x}}</option>
+            {% if enpty %}
                 No sports Available
-                {% endif %}
-                {% endfor %}
+            {% endif %}
+            {% endfor %}
+        </select>
+        <select name="arena">
+            <option disabled selected>Courts/Arenas</option>
+            {% for x in courts %}
+                <option value="{{x}}">{{x}}</option>
+            {% if empty %}
+                No courts Available
+            {% endif %}
+            {% endfor %}
         </select>
         <select name="slot">
             <option disabled selected>Slot</option>
@@ -31,6 +41,8 @@
             {% endif %}
             {% endfor %}
         </select>
+        <br>
+        <br>
         <button type="submit">Book</button>
     </form>
 {% endblock %}

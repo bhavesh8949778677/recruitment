@@ -143,11 +143,19 @@ def sports_pages(request, sport):
     if request.session.has_key('username'):
         if request.method=="GET":
             content=util.get_entry(sport)
-            print(content==None)
             if content is not None:
                 text = markdown2.markdown(util.get_entry(sport))
                 return render(request, "slotbook/content.html",{
                     "title": sport,
                     "text": text,
                 })
+    return HttpResponseRedirect(reverse("slotbook:login"))
+
+def profile(request):
+    if request.method=="GET":
+        if request.session.has_key("username"):
+            user=request.session['username']
+            return render(request, "slotbook/profile.html",{
+                "user":user,
+            })
     return HttpResponseRedirect(reverse("slotbook:login"))

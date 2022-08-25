@@ -17,7 +17,6 @@ rows=ava_data.objects.all()
 ava_sport_obs=set()
 ava_slot_obs=set()
 ava_arena_obs=set()
-print("Available Things")
 for row in rows:
     row=model_to_dict(row)
     ava_sports=sports.objects.filter(id=row['sport_id'])
@@ -299,4 +298,68 @@ def newpage(request):
             return render(request, "slotbook/newpage.html",{
                 "form":newpageform(),
             })
+        if request.method=="POST":
+            form=newpageform(request.POST)
+            if form.is_valid():
+                title=form.cleaned_data["title"]
+                z=sports()
+                z.sport=title
+                z.save()
+                content=form.cleaned_data["content"]
+                if title not in util.list_entries():
+                    util.save_entry(title,content)
+                    text = markdown2.markdown(util.get_entry(title))
+                    return render(request,"slotbook/content.html",{
+                    "title":title,
+                    "text":text,
+                }) 
+                return render(request,"slotbook/newpage.html",{
+                    "form": form,
+                    "message": "Error this title alredy exists"
+                })
+            return render(request,"slotbook/newpage.html",{
+                "entry": random.choice(util.list_entries()),
+                "form": newpageform()
+            }) 
     return HttpResponseRedirect(reverse("slotbook:index"))
+
+
+
+def edit(request,sport):
+    if request.session.has_key('staff'):
+        if request.method=="GET":
+            title=sport
+            content=util.get_entry(title)
+            form=newpageform()
+            form.fields["title"].initial = title
+            form.fields["title"].widget = forms.HiddenInput()
+            form.fields["content"].initial = content
+            return render(request, "slotbook/edit.html",{
+                "title":title,
+                "form":form,
+            })
+        if request.method=="POST":
+            form=newpageform(request.POST)
+            if form.is_valid():
+                title=form.cleaned_data["title"]
+                content=form.cleaned_data["content"]
+                if title in util.list_entries():
+                    util.save_entry(title,content)
+                    text = markdown2.markdown(util.get_entry(title))
+                    return render(request,"slotbook/content.html",{
+                    "title":title,
+                    "text":text,
+                    "edit_access":True,
+                }) 
+                return render(request,"slotbook/newpage.html",{
+                    "form": form,
+                    "message": "Error this title alredy exists"
+                })    
+    return HttpResponseRedirect(reverse("slotbook:login"))
+
+
+
+def newslot(request):
+    if request.session.has_key('staff'):
+        if request.method=="GET":
+            return render(request, "slotbook/newslot.html")

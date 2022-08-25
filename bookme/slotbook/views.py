@@ -359,7 +359,59 @@ def edit(request,sport):
 
 
 
+
 def newslot(request):
     if request.session.has_key('staff'):
         if request.method=="GET":
             return render(request, "slotbook/newslot.html")
+
+        if request.method=="POST":
+            form = request.POST
+            i_sport = form['input_sport']
+            i_arena = form['input_arena']
+            i_day=form['input_day']
+            i_start=form['input_start']
+            i_end=form['input_end']
+            rows=sports.objects.filter(sport=i_sport)
+            flag=0
+            if len(rows)==0:
+                flag=1
+                a=sports()
+                a.sport=i_sport
+                a.save()
+            rows=arena.objects.filter(arena=i_arena)
+            if len(rows)==0:
+                flag=1
+                a=arena()
+                a.arena=i_arena
+                a.save()
+            rows= slots.objects.filter(day=i_day, start_time=i_start, end_time=i_end)
+            if len(rows)==0:
+                flag=1
+                a=slot()
+                a.day=i_day
+                a.start_time=i_start
+                a.end_time=i_end
+                a.save()
+            sport_id=model_to_dict(sports.objects.get(sport=i_sport))['id']
+            arena_id=model_to_dict(arena.objects.get(arena=i_arena))['id']
+            slot_id=model_to_dict(slots.objects.get(day=i_day, start_time=i_start, end_time=i_end))['id']
+            rows=ava_data.objects.filter(sport_id=sport_id, arena_id=arena_id, slot_id=slot_id)
+            if len(rows)==0:
+                flag=1
+                a=ava_data()
+                a.sport_id=sport_id
+                a.arena_id=arena_id
+                a.slot_id=slot_id
+                a.save()
+            if flag==0:
+                return render(request, "slotbook/newslot.html",{
+                    "message": "This slot is already available."
+                })
+            else:
+                return HttpResponseRedirect(reverse("slotbook:index"))
+    return HttpResponseRedirect(reverse("slotbook:login"))
+
+
+def newstaff(request):
+    return HttpResponse("Make New Staff Here")

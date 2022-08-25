@@ -2,12 +2,17 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core import serializers
+from django import forms
 from django.forms.models import model_to_dict
 from . import util, markdown2
 from .models import *
 from datetime import datetime
 
 # Create your views here.
+class newpageform(forms.Form):
+    title = forms.CharField(label="Title", widget=forms.TextInput(attrs={'class' : 'form-control col-md-8 col-lg-12'}))
+    content = forms.CharField(widget=forms.Textarea(attrs={'class':'form-control col-md-8 col-lg-12','rows': 10}))
+
 rows=ava_data.objects.all()
 ava_sport_obs=set()
 ava_slot_obs=set()
@@ -38,6 +43,9 @@ for x in ava_arena_obs:
     dick={'id':x[0],'arena':x[1]}
     ava_arena_dict.append(dick)
 """
+
+
+
 sports_hi = ["basketball", "football", "squash", "badminton", "cricket"]
 available_slots =  ["1 to 3", "3 to 5", "5 to 7", "7 to 9"]
 available_arena =  ["arena 1", "arena 2","arena 3"]
@@ -282,3 +290,13 @@ def profile(request):
                 "user":user,
             })
     return HttpResponseRedirect(reverse("slotbook:login"))
+
+
+
+def newpage(request):
+    if request.session.has_key('staff'):
+        if request.method=="GET":
+            return render(request, "slotbook/newpage.html",{
+                "form":newpageform(),
+            })
+    return HttpResponseRedirect(reverse("slotbook:index"))

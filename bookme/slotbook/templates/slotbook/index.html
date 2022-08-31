@@ -4,17 +4,16 @@
 {% endblock %}
 {% block main %}
     <h1>Hello, {{username}}</h1>
-    <h2>your registered email is {{email}}</h2>
     <h2 style="text-align:left">All sports</h2>
     <ul style="text-align:left">
         {% for entry in sports %}
-            <li><a href="/slotbook/sports_pages/{{entry}}">{{entry}}</a></li>
+            <li><a href="/slotbook/sports_pages/{{entry.sport}}">{{entry.sport}}</a></li>
         {% endfor %}
     </ul>
-    <h1>Available Slots</h1>
+    <h1>Search For Available Slots</h1>
     <form action="/slotbook/" method="POST">
         {% csrf_token %}
-        <select name="sport">
+        <select name="sport" id="sport">
             <option disabled selected>Sport</option>
             {% for x in ava_sports %}
                 <option value="{{x}}">{{x}}</option>
@@ -23,7 +22,7 @@
             {% endif %}
             {% endfor %}
         </select>
-        <select name="arena">
+        <select name="arena" id="arena">
             <option disabled selected>Courts/Arenas</option>
             {% for x in courts %}
                 <option value="{{x}}">{{x}}</option>
@@ -32,7 +31,7 @@
             {% endif %}
             {% endfor %}
         </select>
-        <select name="slot">
+        <select name="slot" id="slot">
             <option disabled selected>Slot</option>
             {% for x in slots %}
                 <option value="{{x}}">{{x}}</option>

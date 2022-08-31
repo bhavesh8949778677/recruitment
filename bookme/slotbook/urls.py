@@ -13,5 +13,7 @@ urlpatterns = [
     path("newpage/",views.newpage, name="newpage"),
     path("newslot/",views.newslot, name="newslot"),
     path("sports_pages/<str:sport>/edit",views.edit, name="edit"),
-    path("newstaff/", views.newstaff, name="newstaff")
+    path("newstaff/", views.newstaff, name="newstaff"),
+    path("cancel/", views.cancel, name="cancel"),
+    path("deletestaff/", views.deletestaff, name="deletestaff")
 ]

@@ -45,10 +45,6 @@ for x in ava_arena_obs:
 
 
 
-sports_hi = ["basketball", "football", "squash", "badminton", "cricket"]
-available_slots =  ["1 to 3", "3 to 5", "5 to 7", "7 to 9"]
-available_arena =  ["arena 1", "arena 2","arena 3"]
-
 def index(request):
     if request.method=="GET":
         if request.session.has_key('admin'):
@@ -78,7 +74,7 @@ def index(request):
                 slot1=slots.objects.get(id=x['slot_id'])
                 slot1=model_to_dict(slot1)
                 slot1=slot1['day'] + ' start '+str(slot1['start_time'])+' end '+str(slot1['end_time'])
-                dick={'usera':usera,'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                dick={'id':x['id'],'usera':usera,'sport1':sport1,'arena1':arena1,'slot1': slot1}
                 l.append(dick)
             return render(request, "slotbook/staff_index.html",{
                 "user_data": users.objects.all(),
@@ -87,12 +83,10 @@ def index(request):
             })
 
 
-
-
         if request.session.has_key('username'):
             user=request.session['username']
+            sports_hi = sports.objects.all()
             return render(request, "slotbook/index.html", {
-                    "data":users.objects.all(),
                     "username": user["username"],
                     "email":user['email'],
                     "sports": sports_hi,
@@ -105,6 +99,7 @@ def index(request):
     if request.method=="POST":
         if request.session.has_key('username'):
             user=request.session['username']
+            sports_hi = sports.objects.all()
             form=request.POST
             sport=form['sport']
             arena1=form['arena']
@@ -285,8 +280,26 @@ def profile(request):
     if request.method=="GET":
         if request.session.has_key("username"):
             user=request.session['username']
+            data1=data.objects.filter(user_id=user['id'])
+            print(data1)
+            bookings=[]
+            for x in data1:
+                x=model_to_dict(x)
+                # print(x)
+                sport1=sports.objects.get(id=x['sport_id'])
+                sport1=model_to_dict(sport1)
+                sport1=sport1['sport']
+                arena1=arena.objects.get(id=x['arena_id'])
+                arena1=model_to_dict(arena1)
+                arena1=arena1['arena']
+                slot1=slots.objects.get(id=x['slot_id'])
+                slot1=model_to_dict(slot1)
+                slot1=slot1['day'] + ' start '+str(slot1['start_time'])+' end '+str(slot1['end_time'])
+                dick={'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                bookings.append(dick)
             return render(request, "slotbook/profile.html",{
                 "user":user,
+                "bookings":bookings,
             })
     return HttpResponseRedirect(reverse("slotbook:login"))
 
@@ -414,4 +427,60 @@ def newslot(request):
 
 
 def newstaff(request):
+    if request.session.has_key('admin'):
+        if request.method=="GET":
+            return render(request, 'slotbook/newstaff.html')
+        if request.method=="POST":
+            form = request.POST
+            name=form['name']
+            role=form['role']
+            password=form['password']
+            confirmation=form['confirmation']
+            email=form['email']
+            if password!=confirmation:
+                return render(request, 'slotbook/newstaff.html',{
+                    'message': "Passwords must match",
+                })
+            new=staff()
+            new.username=name
+            new.password=password
+            new.role=role
+            new.email=email
+            new.save()
+            admin=request.session['admin']
+            return render(request, "slotbook/admin_index.html",{
+                "admin":admin,
+                "user_data": users.objects.all(),
+                "staff_data": staff.objects.all(),
+                "message": "New staff created successfully",
+            })
+            return 
+
     return HttpResponse("Make New Staff Here")
+
+
+
+def cancel(request):
+    if request.session.has_key("staff"):
+        if request.method=="POST":
+            form = request.POST
+            id= form['y']
+            row=data.objects.get(id=id)
+            row.delete()
+            return HttpResponseRedirect(reverse("slotbook:index"))
+
+
+def deletestaff(request):
+    if request.session.has_key('admin'):
+        if request.method=="POST":
+            id=request.POST['staffid']
+            staff1=staff.objects.get(id=id)
+            staff1.delete()
+            admin=request.session['admin']
+            return render(request, "slotbook/admin_index.html",{
+                "admin":admin,
+                "user_data": users.objects.all(),
+                "staff_data": staff.objects.all(),
+                "message": "Staff deleted succesfully",
+            })
+    return HttpResponseRedirect(reverse("slotbook:login"))

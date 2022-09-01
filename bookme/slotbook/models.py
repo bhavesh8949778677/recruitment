@@ -36,12 +36,11 @@ class arena(models.Model):
         return f"{self.id} : {self.arena}"
 
 class slots(models.Model):
-    day=models.CharField(max_length=64)
     start_time=models.TimeField()
     end_time=models.TimeField()
 
     def __str__(self):
-        return f"{self.id} :  on {self.day} from {self.start_time} to {self.end_time}"
+        return f"{self.id} : from {self.start_time} to {self.end_time}"
 
 class data(models.Model):
     user_id=models.IntegerField()

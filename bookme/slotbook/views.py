@@ -13,18 +13,7 @@ class newpageform(forms.Form):
     title = forms.CharField(label="Title", widget=forms.TextInput(attrs={'class' : 'form-control col-md-8 col-lg-12'}))
     content = forms.CharField(widget=forms.Textarea(attrs={'class':'form-control col-md-8 col-lg-12','rows': 10}))
 
-rows=ava_data.objects.all()
-ava_sport_obs=set()
-ava_slot_obs=set()
-ava_arena_obs=set()
-for row in rows:
-    row=model_to_dict(row)
-    ava_sports=sports.objects.filter(id=row['sport_id'])
-    ava_sport_obs.add(model_to_dict(ava_sports[0])['sport'])
-    ava_slot=slots.objects.filter(id=row['slot_id'])
-    ava_slot_obs.add(model_to_dict(ava_slot[0])['day']+' start '+str(model_to_dict(ava_slot[0])['start_time'])+' end ' +str(model_to_dict(ava_slot[0])['end_time']))
-    ava_arena=arena.objects.filter(id=row['arena_id'])
-    ava_arena_obs.add(model_to_dict(ava_arena[0])['arena'])
+
     # print(model_to_dict(ava_sports[0])['sport'], ava_slot[0], model_to_dict(ava_arena[0])['arena'])
 
 #Failed attempt : I learnt I can't pass list_of_dict/set_of_tuples into an html file and extract data
@@ -44,8 +33,17 @@ for x in ava_arena_obs:
 """
 
 
-
 def index(request):
+    print()
+    print()
+    print(datetime.now())
+    print()
+    print()
+    # data1=data.objects.all()
+    # for x in data1:
+    #     q=x['slot_id']
+    #     row=slots.objects.get(id=q)
+    #     if slots.end_time
     if request.method=="GET":
         if request.session.has_key('admin'):
             admin=request.session['admin']
@@ -59,6 +57,7 @@ def index(request):
         if request.session.has_key('staff'):
             staffing=request.session['staff']
             data1=data.objects.all()
+            ava = ava_data.objects.all()
             l=[]
             for x in data1:
                 x=model_to_dict(x)
@@ -73,12 +72,27 @@ def index(request):
                 arena1=arena1['arena']
                 slot1=slots.objects.get(id=x['slot_id'])
                 slot1=model_to_dict(slot1)
-                slot1=slot1['day'] + ' start '+str(slot1['start_time'])+' end '+str(slot1['end_time'])
+                slot1=' from '+str(slot1['start_time'])+' to '+str(slot1['end_time'])
                 dick={'id':x['id'],'usera':usera,'sport1':sport1,'arena1':arena1,'slot1': slot1}
                 l.append(dick)
+            l1=[]
+            for x in ava:
+                x=model_to_dict(x)
+                sport1=sports.objects.get(id=x['sport_id'])
+                sport1=model_to_dict(sport1)
+                sport1=sport1['sport']
+                arena1=arena.objects.get(id=x['arena_id'])
+                arena1=model_to_dict(arena1)
+                arena1=arena1['arena']
+                slot1=slots.objects.get(id=x['slot_id'])
+                slot1=model_to_dict(slot1)
+                slot1='From '+ str(slot1['start_time']) +' To ' + str(slot1['end_time'])
+                dick={'id':x['id'],'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                l1.append(dick)
             return render(request, "slotbook/staff_index.html",{
                 "user_data": users.objects.all(),
                 "l":l,
+                "l1":l1,
                 "sports":sports.objects.all(),
             })
 
@@ -86,68 +100,57 @@ def index(request):
         if request.session.has_key('username'):
             user=request.session['username']
             sports_hi = sports.objects.all()
+            slots_hi = slots.objects.all()
+            arenas_hi = arena.objects.all()
             return render(request, "slotbook/index.html", {
                     "username": user["username"],
                     "email":user['email'],
                     "sports": sports_hi,
-                    "ava_sports": ava_sport_obs,
-                    "slots": ava_slot_obs,
-                    "courts": ava_arena_obs,
-                    "entries": util.list_entries(),
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
                 })
 
     if request.method=="POST":
         if request.session.has_key('username'):
+            sports_hi = sports.objects.all()
+            slots_hi = slots.objects.all()
+            arenas_hi = arena.objects.all()
             user=request.session['username']
             sports_hi = sports.objects.all()
             form=request.POST
-            sport=form['sport']
-            arena1=form['arena']
-            slot1=form['slot']
-            rows=sports.objects.filter(sport=sport)
-            sport_id=model_to_dict(rows[0])['id']
-            rows=arena.objects.filter(arena=arena1)
-            arena_id=model_to_dict(rows[0])['id']
-            slot1=slot1.split()
-            rows=slots.objects.filter(day=slot1[0], start_time=datetime.strptime(slot1[2],'%H:%M:%S').time(), end_time=datetime.strptime(slot1[4],'%H:%M:%S').time())
-            slot_id=model_to_dict(rows[0])['id']
-            rows=ava_data.objects.filter(sport_id=sport_id,arena_id=arena_id, slot_id= slot_id)
+            sport1_id=form['sport']
+            arena1_id=form['arena']
+            slot1_id=form['slot']
+            rows=ava_data.objects.filter(sport_id=sport1_id,arena_id=arena1_id, slot_id= slot1_id)
             if len(rows)==1:
-                rows=ava_data.objects.get(sport_id=sport_id,arena_id=arena_id, slot_id= slot_id)
+                rows=ava_data.objects.get(sport_id=sport1_id,arena_id=arena1_id, slot_id= slot1_id)
                 rows.delete()
                 booking=data()
                 booking.user_id=request.session['username']['id']
-                booking.sport_id=sport_id
-                booking.arena_id=arena_id
-                booking.slot_id=slot_id
+                booking.sport_id=sport1_id
+                booking.arena_id=arena1_id
+                booking.slot_id=slot1_id
                 booking.save()
-                return render(request, "slotbook/index.html",{
-                "message": "You slot is succesfully booked",
-                    "data":users.objects.all(),
+                return render(request, "slotbook/index.html", {
+                    "message": "You slot is succesfully booked",
                     "username": user["username"],
                     "email":user['email'],
                     "sports": sports_hi,
-                    "ava_sports": ava_sport_obs,
-                    "slots": ava_slot_obs,
-                    "courts": ava_arena_obs,
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
                     "entries": util.list_entries(),
                 })
             else:
                 return render(request, "slotbook/index.html",{
                 "message": "This slot is not available",
-                    "data":users.objects.all(),
                     "username": user["username"],
                     "email":user['email'],
                     "sports": sports_hi,
-                    "ava_sports": ava_sport_obs,
-                    "slots": ava_slot_obs,
-                    "courts": ava_arena_obs,
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
                     "entries": util.list_entries(),
                 })
     return HttpResponseRedirect(reverse("slotbook:login"))
-
-
-
 
 
 
@@ -281,11 +284,9 @@ def profile(request):
         if request.session.has_key("username"):
             user=request.session['username']
             data1=data.objects.filter(user_id=user['id'])
-            print(data1)
             bookings=[]
             for x in data1:
                 x=model_to_dict(x)
-                # print(x)
                 sport1=sports.objects.get(id=x['sport_id'])
                 sport1=model_to_dict(sport1)
                 sport1=sport1['sport']
@@ -294,7 +295,7 @@ def profile(request):
                 arena1=arena1['arena']
                 slot1=slots.objects.get(id=x['slot_id'])
                 slot1=model_to_dict(slot1)
-                slot1=slot1['day'] + ' start '+str(slot1['start_time'])+' end '+str(slot1['end_time'])
+                slot1='From '+str(slot1['start_time'])+'To '+str(slot1['end_time'])
                 dick={'sport1':sport1,'arena1':arena1,'slot1': slot1}
                 bookings.append(dick)
             return render(request, "slotbook/profile.html",{
@@ -382,7 +383,6 @@ def newslot(request):
             form = request.POST
             i_sport = form['input_sport']
             i_arena = form['input_arena']
-            i_day=form['input_day']
             i_start=form['input_start']
             i_end=form['input_end']
             rows=sports.objects.filter(sport=i_sport)
@@ -398,17 +398,16 @@ def newslot(request):
                 a=arena()
                 a.arena=i_arena
                 a.save()
-            rows= slots.objects.filter(day=i_day, start_time=i_start, end_time=i_end)
+            rows= slots.objects.filter(start_time=i_start, end_time=i_end)
             if len(rows)==0:
                 flag=1
                 a=slot()
-                a.day=i_day
                 a.start_time=i_start
                 a.end_time=i_end
                 a.save()
             sport_id=model_to_dict(sports.objects.get(sport=i_sport))['id']
             arena_id=model_to_dict(arena.objects.get(arena=i_arena))['id']
-            slot_id=model_to_dict(slots.objects.get(day=i_day, start_time=i_start, end_time=i_end))['id']
+            slot_id=model_to_dict(slots.objects.get( start_time=i_start, end_time=i_end))['id']
             rows=ava_data.objects.filter(sport_id=sport_id, arena_id=arena_id, slot_id=slot_id)
             if len(rows)==0:
                 flag=1
@@ -467,7 +466,47 @@ def cancel(request):
             id= form['y']
             row=data.objects.get(id=id)
             row.delete()
-            return HttpResponseRedirect(reverse("slotbook:index"))
+            staffing=request.session['staff']
+            data1=data.objects.all()
+            ava = ava_data.objects.all()
+            l=[]
+            for x in data1:
+                x=model_to_dict(x)
+                usera=users.objects.get(id=x['user_id'])
+                usera=model_to_dict(usera)
+                usera=usera['username']
+                sport1=sports.objects.get(id=x['sport_id'])
+                sport1=model_to_dict(sport1)
+                sport1=sport1['sport']
+                arena1=arena.objects.get(id=x['arena_id'])
+                arena1=model_to_dict(arena1)
+                arena1=arena1['arena']
+                slot1=slots.objects.get(id=x['slot_id'])
+                slot1=model_to_dict(slot1)
+                slot1='From '+str(slot1['start_time'])+' To '+str(slot1['end_time'])
+                dick={'id':x['id'],'usera':usera,'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                l.append(dick)
+            l1=[]
+            for x in ava:
+                x=model_to_dict(x)
+                sport1=sports.objects.get(id=x['sport_id'])
+                sport1=model_to_dict(sport1)
+                sport1=sport1['sport']
+                arena1=arena.objects.get(id=x['arena_id'])
+                arena1=model_to_dict(arena1)
+                arena1=arena1['arena']
+                slot1=slots.objects.get(id=x['slot_id'])
+                slot1=model_to_dict(slot1)
+                slot1='From '+ str(slot1['start_time']) +' To ' + str(slot1['end_time'])
+                dick={'id':x['id'],'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                l1.append(dick)
+            return render(request, "slotbook/staff_index.html",{
+                "message": "booking cancelled succesfully",
+                "user_data": users.objects.all(),
+                "l":l,
+                "l1":l1,
+                "sports":sports.objects.all(),
+            })
 
 
 def deletestaff(request):
@@ -484,3 +523,52 @@ def deletestaff(request):
                 "message": "Staff deleted succesfully",
             })
     return HttpResponseRedirect(reverse("slotbook:login"))
+
+
+def unava(request):
+    if request.session.has_key('staff'):
+        if request.method=="POST":
+            id =request.POST['y']
+            x = ava_data.objects.get(id=id)
+            x.delete()
+            staffing=request.session['staff']
+            data1=data.objects.all()
+            ava = ava_data.objects.all()
+            l=[]
+            for x in data1:
+                x=model_to_dict(x)
+                usera=users.objects.get(id=x['user_id'])
+                usera=model_to_dict(usera)
+                usera=usera['username']
+                sport1=sports.objects.get(id=x['sport_id'])
+                sport1=model_to_dict(sport1)
+                sport1=sport1['sport']
+                arena1=arena.objects.get(id=x['arena_id'])
+                arena1=model_to_dict(arena1)
+                arena1=arena1['arena']
+                slot1=slots.objects.get(id=x['slot_id'])
+                slot1=model_to_dict(slot1)
+                slot1='From '+str(slot1['start_time'])+' To '+str(slot1['end_time'])
+                dick={'id':x['id'],'usera':usera,'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                l.append(dick)
+            l1=[]
+            for x in ava:
+                x=model_to_dict(x)
+                sport1=sports.objects.get(id=x['sport_id'])
+                sport1=model_to_dict(sport1)
+                sport1=sport1['sport']
+                arena1=arena.objects.get(id=x['arena_id'])
+                arena1=model_to_dict(arena1)
+                arena1=arena1['arena']
+                slot1=slots.objects.get(id=x['slot_id'])
+                slot1=model_to_dict(slot1)
+                slot1='From '+ str(slot1['start_time']) +' To ' + str(slot1['end_time'])
+                dick={'id':x['id'],'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                l1.append(dick)
+            return render(request, "slotbook/staff_index1.html",{
+                "message": "Slot made unavailable",
+                "user_data": users.objects.all(),
+                "l":l,
+                "l1":l1,
+                "sports":sports.objects.all(),
+            })

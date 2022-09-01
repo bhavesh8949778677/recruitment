@@ -43,6 +43,13 @@
             </div>
         </header>
         {% endif %}
+        {% if bmessage %}
+        <header>
+            <div class="alert alert-danger mb-0 text-center" role="alert">
+                {{bmessage}}
+              </div>
+        </header>
+        {% endif %}
 
         <main class="container-fluid py-5 text-center">
             {% block main %}{% endblock %}

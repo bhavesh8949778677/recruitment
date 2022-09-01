@@ -14,36 +14,25 @@ class newpageform(forms.Form):
     content = forms.CharField(widget=forms.Textarea(attrs={'class':'form-control col-md-8 col-lg-12','rows': 10}))
 
 
-    # print(model_to_dict(ava_sports[0])['sport'], ava_slot[0], model_to_dict(ava_arena[0])['arena'])
-
-#Failed attempt : I learnt I can't pass list_of_dict/set_of_tuples into an html file and extract data
-"""
-ava_sport_dict=[]
-ava_slot_dict=[]
-ava_arena_dict=[]
-for x in ava_sport_obs:
-    dick={'id':x[0],'sport':x[1]}
-    ava_sport_dict.append(dick)
-for x in ava_slot_obs:
-    dick={'id':x[0],'day':x[1],'start':x[2],'end':x[3]}
-    ava_slot_dict.append(dick)
-for x in ava_arena_obs:
-    dick={'id':x[0],'arena':x[1]}
-    ava_arena_dict.append(dick)
-"""
-
-
 def index(request):
-    print()
-    print()
-    print(datetime.now())
-    print()
-    print()
-    # data1=data.objects.all()
-    # for x in data1:
-    #     q=x['slot_id']
-    #     row=slots.objects.get(id=q)
-    #     if slots.end_time
+    data1=data.objects.all()
+    for x in data1:
+        x=model_to_dict(x)
+        q=x['slot_id']
+        row=slots.objects.get(id=q)
+        print(row.end_time)
+        print(datetime.now().time())
+        # print(row.end_time < datetime.now().time())
+        if row.end_time <= datetime.now().time():
+            a=ava_data()
+            a.sport_id=x['sport_id']
+            a.arena_id=x['arena_id']
+            a.slot_id = x['slot_id']
+            print(a)
+            print(x)
+            a.save()
+            w=data.objects.get(id=x['id'])
+            w.delete()
     if request.method=="GET":
         if request.session.has_key('admin'):
             admin=request.session['admin']
@@ -52,7 +41,6 @@ def index(request):
                 "user_data": users.objects.all(),
                 "staff_data": staff.objects.all(),
             })
-
 
         if request.session.has_key('staff'):
             staffing=request.session['staff']
@@ -116,6 +104,22 @@ def index(request):
             slots_hi = slots.objects.all()
             arenas_hi = arena.objects.all()
             user=request.session['username']
+            rows=data.objects.filter(user_id = request.session['username']['id'])
+            if len(rows)>=3:
+                return render(request, "slotbook/index.html",{
+                "bmessage": "You have already booked maximum number of slots",
+                    "username": user["username"],
+                    "email":user['email'],
+                    "sports": sports_hi,
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
+                    "entries": util.list_entries(),
+                })
+
+            sports_hi = sports.objects.all()
+            slots_hi = slots.objects.all()
+            arenas_hi = arena.objects.all()
+            user=request.session['username']
             sports_hi = sports.objects.all()
             form=request.POST
             sport1_id=form['sport']
@@ -142,7 +146,7 @@ def index(request):
                 })
             else:
                 return render(request, "slotbook/index.html",{
-                "message": "This slot is not available",
+                "bmessage": "This slot is not available",
                     "username": user["username"],
                     "email":user['email'],
                     "sports": sports_hi,
@@ -173,7 +177,7 @@ def register(request):
         rows=users.objects.filter(username=mind.username)
         if len(rows)>0:
             return render(request, "slotbook/register.html",{
-                "message": "User alredy exists"
+                "bmessage": "User alredy exists"
             }) 
         rows=users.objects.all()
         mind.save()
@@ -209,7 +213,7 @@ def login(request):
                 request.session['username']=model_to_dict(x)
                 return HttpResponseRedirect(reverse("slotbook:index"))
         return render(request, "slotbook/login.html",{
-            "message":"Invalid Username/Password",
+            "bmessage":"Invalid Username/Password",
         })
 
 
@@ -329,7 +333,7 @@ def newpage(request):
                 }) 
                 return render(request,"slotbook/newpage.html",{
                     "form": form,
-                    "message": "Error this title alredy exists"
+                    "bmessage": "Error this sport page alredy exists"
                 })
             return render(request,"slotbook/newpage.html",{
                 "entry": random.choice(util.list_entries()),
@@ -367,7 +371,7 @@ def edit(request,sport):
                 }) 
                 return render(request,"slotbook/newpage.html",{
                     "form": form,
-                    "message": "Error this title alredy exists"
+                    "bmessage": "Error this sport page alredy exists"
                 })    
     return HttpResponseRedirect(reverse("slotbook:login"))
 
@@ -418,7 +422,7 @@ def newslot(request):
                 a.save()
             if flag==0:
                 return render(request, "slotbook/newslot.html",{
-                    "message": "This slot is already available."
+                    "bmessage": "This slot is already available."
                 })
             else:
                 return HttpResponseRedirect(reverse("slotbook:index"))
@@ -438,7 +442,7 @@ def newstaff(request):
             email=form['email']
             if password!=confirmation:
                 return render(request, 'slotbook/newstaff.html',{
-                    'message': "Passwords must match",
+                    'bmessage': "Passwords must match",
                 })
             new=staff()
             new.username=name

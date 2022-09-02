@@ -17,4 +17,6 @@ urlpatterns = [
     path("cancel/", views.cancel, name="cancel"),
     path("deletestaff/", views.deletestaff, name="deletestaff"),
     path("unava/", views.unava, name="unava"),
+    path("have/", views.have, name="have"),
+    path("book/", views.book, name="book"),
 ]

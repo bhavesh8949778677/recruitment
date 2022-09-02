@@ -19,20 +19,30 @@ def index(request):
     for x in data1:
         x=model_to_dict(x)
         q=x['slot_id']
+        booking_time = x['booking_time']
         row=slots.objects.get(id=q)
-        print(row.end_time)
-        print(datetime.now().time())
         # print(row.end_time < datetime.now().time())
-        if row.end_time <= datetime.now().time():
+        # if not(booking_time.time() <= row.end_time and datetime.now().date()  <= booking_time.date()):
+
+        # if endtime<=booking_time.time()<=now time() and date is same then do nothing
+        # if nowtime>endtime>booking tiem and booking date  and now date is same then update from booking to ava
+
+
+
+
+        # if datetime.now().time() >= date.end_time and booking_time.time() 
+        if (row.end_time <= datetime.now().time() and booking_time.time()<=row.end_time and booking_time.date() == datetime.now().date()) or (datetime.now().date() > booking_time.date()):
             a=ava_data()
             a.sport_id=x['sport_id']
             a.arena_id=x['arena_id']
             a.slot_id = x['slot_id']
-            print(a)
-            print(x)
             a.save()
             w=data.objects.get(id=x['id'])
             w.delete()
+
+
+
+
     if request.method=="GET":
         if request.session.has_key('admin'):
             admin=request.session['admin']
@@ -103,6 +113,7 @@ def index(request):
             sports_hi = sports.objects.all()
             slots_hi = slots.objects.all()
             arenas_hi = arena.objects.all()
+            booking_time = datetime.now()
             user=request.session['username']
             rows=data.objects.filter(user_id = request.session['username']['id'])
             if len(rows)>=3:
@@ -162,11 +173,12 @@ def register(request):
     if request.method=="GET":
         if request.session.has_key('username'):
             user=request.session['username']
-            return render(request, "slotbook/index.html", {
-                    "data":users.objects.all(),
-                    "username":user['username'],
-                    "email":user['email'],
-                })  
+            return HttpResponseRedirect(reverse("slotbook:index"))
+            # return render(request, "slotbook/index.html", {
+            #         "data":users.objects.all(),
+            #         "username":user['username'],
+            #         "email":user['email'],
+            #     })  
         return render(request, "slotbook/register.html")
     if request.method=="POST":
         form = request.POST
@@ -179,9 +191,8 @@ def register(request):
             return render(request, "slotbook/register.html",{
                 "bmessage": "User alredy exists"
             }) 
-        rows=users.objects.all()
         mind.save()
-        request.session["username"]=mind
+        request.session["username"]=model_to_dict(mind)
         return HttpResponseRedirect(reverse("slotbook:index"))
 
 
@@ -576,3 +587,111 @@ def unava(request):
                 "l1":l1,
                 "sports":sports.objects.all(),
             })
+
+
+
+
+def have(request):
+    if request.session.has_key("username"):
+        if request.method=="POST":
+            user=request.session['username']
+            sports_hi = sports.objects.all()
+            slots_hi = slots.objects.all()
+            arenas_hi = arena.objects.all()
+
+
+            sport = request.POST['sport']
+            rows = sports.objects.filter(sport__contains = sport )
+            if len(rows)==0:
+                return render(request, "slotbook/index.html", {
+                    "bmessage": "No Such Sport exists",
+                    "username": user["username"],
+                    "email":user['email'],
+                    "sports": sports_hi,
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
+                })
+            l=[]
+            for row in rows:
+                row=model_to_dict(row)
+                sport_id=row['id']
+                data1 = ava_data.objects.filter(sport_id=sport_id)
+                for x in data1:
+                    x = model_to_dict(x)
+                    sport1=sports.objects.get(id=x['sport_id'])
+                    sport1=model_to_dict(sport1)
+                    sport1=sport1['sport']
+                    arena1=arena.objects.get(id=x['arena_id'])
+                    arena1=model_to_dict(arena1)
+                    arena1=arena1['arena']
+                    slot1=slots.objects.get(id=x['slot_id'])
+                    slot1=model_to_dict(slot1)
+                    dick={'id':x['id'],'sport1':sport1,'arena1':arena1,'slot1': slot1}
+                    l.append(dick)
+                    # id = x['id']
+                    # arena_id=x['arena_id']
+                    # slot_id=x['slot_id']
+                    # ava_slot=slot.objects.get(id=slot_id)
+                    # ava_arena=arena.objects.get(id = arena_id)
+                    # ava_arena = model_to_dict(ava_arena)
+                    # l.append({
+                    #     'id': id,
+                    #     'arena': arena['arena'],
+                    #     'slot': ava_slots
+                    # })
+            return render(request, "slotbook/have.html", {
+                    "username": user["username"],
+                    "email":user['email'],
+                    "sports": sports_hi,
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
+                    "data1":l,
+                })
+    return HttpResponseRedirect(reverse("slotbook:index"))
+
+
+
+def book(request):
+    if request.session.has_key('username'):
+        if request.method=="POST":
+            user=request.session['username']
+            sports_hi = sports.objects.all()
+            slots_hi = slots.objects.all()
+            arenas_hi = arena.objects.all()
+            booking_time = datetime.now()
+            rows=data.objects.filter(user_id = request.session['username']['id'])
+            if len(rows)>=3:
+                return render(request, "slotbook/index.html",{
+                "bmessage": "You have already booked maximum number of slots",
+                    "username": user["username"],
+                    "email":user['email'],
+                    "sports": sports_hi,
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
+                    "entries": util.list_entries(),
+                })
+
+            id = request.POST['book_id']
+            row = ava_data.objects.get(id = id)
+            row = model_to_dict(row)
+            booking = data()
+            booking.user_id = user['id']
+            booking.sport_id = row['sport_id']
+            booking.arena_id = row['arena_id']
+            booking.slot_id = row['slot_id']
+            booking.booking_time = datetime.now()
+            booking.save()
+            row1 = ava_data.objects.get(id = id)
+            row1.delete()
+            return render(request, "slotbook/index.html", {
+                    "message": "slot booked succesfully",
+                    "username": user["username"],
+                    "email":user['email'],
+                    "sports": sports_hi,
+                    "slots": slots_hi,
+                    "courts": arenas_hi,
+                })
+
+            # for displayong the old search table
+
+    return HttpResponseRedirect(reverse('slotbook:index'))

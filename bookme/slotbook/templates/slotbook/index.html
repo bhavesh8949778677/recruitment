@@ -11,6 +11,17 @@
         {% endfor %}
     </ul>
     <h1>Search For Available Slots</h1>
+    <form action="/slotbook/have/" method="POST">
+        {% csrf_token %}
+        <h4 style="display:inline">Search by sport</h4>
+        <input type="text" name="sport" placeholder="Sport">
+        <br>
+        <br>
+        <button type="submit">search</button>
+        <br>
+        <br>
+    </form>
+    <h1>Book the Slot</h1>
     <form action="/slotbook/" method="POST">
         {% csrf_token %}
         <select name="sport" id="sport">

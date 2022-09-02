@@ -47,6 +47,7 @@ class data(models.Model):
     sport_id=models.IntegerField()
     arena_id=models.IntegerField()
     slot_id=models.IntegerField()
+    booking_time=models.DateTimeField()
     def __str__(self):
         return f"{self.id} : user with id={self.user_id} is registered for sport with id={self.sport_id} on arena with id={self.arena_id} in a slot of id={self.slot_id}"
 
